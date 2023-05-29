@@ -1,0 +1,160 @@
+#!/bin/bash
+# TASTE Concurrency View Creator
+
+# Check if the project works with kazoo. If so, skip all the rest
+if [[ -f Makefile && $(grep KAZOO Makefile) != "" ]]
+then
+    make work/glue_built
+    exit 0
+fi
+
+# Initialise the progress bar
+myfifo=/tmp/$$$RANDOM
+mkfifo $myfifo
+tail -f $myfifo | taste-progress-dialog.py &
+
+function quit {
+    echo '100 Completed' > $myfifo
+    rm $myfifo
+    tailps=$(pstree -p $$ | grep tail | python -c "try:
+    import sys, re; print re.search(r'tail\((.*)\)', [x for x in sys.stdin][0]).group(1)
+except: pass")
+    if [ ! -z $tailps ]
+    then
+        kill $tailps 2>&1 || xterm -e "echo Internal Error in taste-update-data-view"
+    fi
+    exit $1
+}
+
+# Install a trap handler to make sure Ctrl-C leads to calling the quit function (trap 2 = SINGINT)
+trap 2 quit 1
+
+# Logging with colors (only in a terminal)
+if [ -t 1 ] ; then
+    COLORON="\e[1m\e[32m"
+    REDCOLORON="\e[1m\e[31m"
+    COLOROFF="\e[0m"
+else
+    COLORON=""
+    REDCOLORON=""
+    COLOROFF=""
+fi
+INFO="${COLORON}[INFO]${COLOROFF}"
+ERROR="${REDCOLORON}[ERROR]${COLOROFF}"
+
+error=0
+NB_ARGS=3
+AUTO=0
+
+# If there are no parameters, take default names for Interface, Deployment and Data view
+if [ $# -eq $AUTO ]
+then
+    if [[ -f InterfaceView.aadl && -f DeploymentView.aadl && -f DataView.aadl ]]
+    then
+        echo -e "${INFO} Using InterfaceView.aadl, DeploymentView.aadl, DataView.aadl (defaults)"
+        INTERFACEVIEW=InterfaceView.aadl
+        DEPLOYMENTVIEW=DeploymentView.aadl
+        DATAVIEW=DataView.aadl
+    else
+        error=1
+        echo -e "${ERROR} Missing files (need InterfaceView.aadl, DeploymentView.aadl, DataView.aadl)"
+    fi
+else
+    # Check if there are 3 parameters and that the files are all present
+    if [[ $# -eq $NB_ARGS && -f "$1" && -f "$2" && -f "$3" ]]
+    then
+        echo -e "${INFO} Loading interface, deployment and data views: $1 $2 $3"
+        INTERFACEVIEW="$1"
+        DEPLOYMENTVIEW="$2"
+        DATAVIEW="$3"
+    else
+        error=1
+        echo -e "${ERROR} Specified files missing or wrong number of parameters"
+    fi
+fi
+
+# Check if models are from V2 and convert to V1_3 accordingly
+V2=0
+grep "version => \"2" InterfaceView.aadl >/dev/null && {
+    echo '0-40 Analyse Interface View' > $myfifo
+    echo -e "${INFO} Converting interface view from V2 to V1.3"
+    TASTE --load-interface-view InterfaceView.aadl --export-interface-view-to-1_3 __iv_1_3.aadl
+    INTERFACEVIEW=__iv_1_3.aadl
+    echo -e "${INFO} Converting deployment view from V2 to V1.3"
+    echo '40-60 Analyse Deployment View' > $myfifo
+    TASTE --load-deployment-view "$DEPLOYMENTVIEW" --export-deployment-view-to-1_3 __dv_1_3.aadl
+    DEPLOYMENTVIEW=__dv_1_3.aadl
+    V2=1
+};
+
+
+if [ $error -eq 1 ]
+then
+    echo -e "${ERROR} If you are using custom names for interface, deployment and data views, please specify them in order:
+Usage: taste-edit-concurrency-view InterfaceView.aadl DeploymentView.aadl DataView.aadl"
+    echo '100 Error' > $myfifo
+    quit 1
+fi
+
+AADL_PROPERTIES="$(taste-config --prefix)/share/config_ellidiss/TASTE_IV_Properties.aadl "
+AADL_PROPERTIES+="$(taste-config --prefix)/share/config_ellidiss/TASTE_DV_Properties.aadl"
+OCARINA_COMPONENTS="$(taste-config --prefix)/share/ocarina/AADLv2/ocarina_components.aadl"
+
+# Tempdir will not be deleted - OS shall make the cleanup (likely at reboot)
+echo '60-80 Parse Data View' > $myfifo
+tempdir=$(mktemp -d)
+mono $(which taste-extract-asn-from-design.exe) -i "$INTERFACEVIEW" -j "$tempdir"/dataview-uniq.asn
+asn2aadlPlus "$tempdir"/dataview-uniq.asn "$tempdir"/dataview-uniq.aadl -aadlv2
+mono $(which taste-extract-asn-from-design.exe) -i "$INTERFACEVIEW" -k "$tempdir"/dataview-uniq.asn
+DATAVIEW="$tempdir"/dataview-uniq.aadl
+echo '80-100 Generate Concurrency View' > $myfifo
+CMD="buildsupport -i ${INTERFACEVIEW}
+                  -c ${DEPLOYMENTVIEW}
+                  -d ${DATAVIEW}
+                  ${AADL_PROPERTIES}
+                  ${OCARINA_COMPONENTS}
+                  -glue
+                  -gw
+                  -o ${tempdir}"
+
+[ ! -z $DEBUG ] && echo "${CMD}"
+
+# Execute buildsupport:
+$CMD
+
+if [ $? -eq 0 ]
+then
+    PROCESS="$tempdir"/ConcurrencyView/process.aadl
+    for file in "$tempdir"/ConcurrencyView/*_Thread.aadl
+    do
+        PROCESS+=,$file
+    done
+    PROCESS+=,$OCARINA_COMPONENTS
+else
+    echo -e "${ERROR} The following command failed:
+${CMD}
+"
+    echo -e "${ERROR} Buildsupport reported errors - Fix your models before you can edit the Concurrency View"
+    echo '100 Error' > $myfifo
+    quit 2
+fi
+
+echo 'Running the Concurrency View editor from TASTE
+From this tool you may:
+
+- Verify the schedulability of your system with CHEDDAR
+- Simulate the real-time architecture with MARZHIN
+- Edit the thread priorities, stack size and offset/phase'
+
+PROPERTIES=ConcurrencyView.pro
+[ ! -z $DEBUG ] && echo TASTE-CV --edit-aadl $PROCESS --update-properties $PROPERTIES
+
+if [ $V2 -eq 0 ]
+then
+    TASTE-CV  --edit-aadl $PROCESS --update-properties $PROPERTIES 
+else
+    rm -rf ConcurrencyView
+    mv "$tempdir"/ConcurrencyView .
+fi
+
+quit 0

@@ -1,0 +1,70 @@
+#!/bin/bash -e
+echo 'TASTE Project Creator'
+
+if [ -t 1 ] ; then
+    COLORON="\e[1m\e[32m"
+    REDCOLORON="\e[1m\e[31m"
+    COLOROFF="\e[0m"
+else
+    COLORON=""
+    REDCOLORON=""
+    COLOROFF=""
+fi
+
+INFO="${COLORON}[INFO]${COLOROFF}"
+ERROR="${REDCOLORON}[ERROR]${COLOROFF}"
+
+echo -e "${INFO} A new folder will be created to host your TASTE project."
+read -p "Please enter a name for the new project folder: " new_folder
+
+if [ "$new_folder" != "" ]
+then
+    if [ -d "$new_folder" ]
+    then
+        echo -e "${ERROR} A folder with that name already exists"
+        exit 1
+    else
+        mkdir "$new_folder"
+        cd "$new_folder"
+    fi
+fi
+
+if [ ! -f DataView.aadl ]
+then
+    echo -e "${INFO} Creating a default ASN.1 data model."
+    NONINTERACTIVE=1 taste-create-data-view
+else
+    echo -e "${INFO} Using existing DataView.aadl"
+fi
+
+# Add the components from the components library
+FIRST=1
+LIBDIR=$(taste-config --prefix)/share/components_library
+for each in $LIBDIR/*
+do
+    if [ $FIRST -eq 1 ]
+    then
+        EXTRA_CMD+='--edit-aadl '
+    else
+        EXTRA_CMD+=,
+    fi
+    EXTRA_CMD+=$each/interfaceview.aadl
+    FIRST=0
+done
+
+# Invoke the GUI from Ellidiss
+echo -e "${INFO} Running "
+echo "    TASTE $EXTRA_CMD
+          --data-view DataView.aadl 
+          --load-interface-view InterfaceView.aadl 
+          --load-deployment-view DeploymentView.aadl 
+          --aadl-library $(taste-config --prefix)/share/ocarina/AADLv2/ocarina_components.aadl
+          --update-properties ConcurrencyView_Properties.aadl
+"
+
+TASTE $EXTRA_CMD \
+      --data-view DataView.aadl \
+      --load-interface-view InterfaceView.aadl \
+      --load-deployment-view DeploymentView.aadl \
+      --aadl-library $(taste-config --prefix)/share/ocarina/AADLv2/ocarina_components.aadl \
+      --update-properties ConcurrencyView_Properties.aadl

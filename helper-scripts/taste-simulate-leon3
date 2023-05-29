@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ $# -ne 1 ] ; then
+    echo Usage: $0 sparc_ELF_binary
+    exit 1
+fi
+# For LEON3, simulate 4 cores.
+echo -en "run\nquit\n" | \
+    /opt/rtems-5.1-2019.07.25/bin/sparc-rtems5-sis -leon3 -m 4 -freq 50 "$@" |& \
+    sed -u '1,7d'

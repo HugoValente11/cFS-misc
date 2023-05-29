@@ -1,0 +1,54 @@
+#!/bin/bash
+# TASTE User Code Editor
+# Depending on the implementation language, launch the corresponding code editor
+# Script (c) Maxime Perrotin / ESA 2021
+# Supported languages: C, Ada, SDL
+# Logging with colors (only in a terminal)
+SPACECREATOR=spacecreator.AppImage
+
+if [ -t 1 ] ; then
+    COLORON="\e[1m\e[32m"
+    REDCOLORON="\e[1m\e[31m"
+    COLOROFF="\e[0m"
+else
+    COLORON=""
+    REDCOLORON=""
+    COLOROFF=""
+fi
+INFO="${COLORON}[INFO]${COLOROFF}"
+ERROR="${REDCOLORON}[ERROR]${COLOROFF}"
+
+taste-xml-to-aadl || exit 1
+
+
+if [[ $1 != "C" && $1 != "Ada" && $1 != "SDL" && $1 != "CPP" && $1 != "GUI" && "$1" != "Blackbox_Device" && "$1" != "QGenC" ]]
+then
+    echo  -e "${ERROR} First argument must be C, CPP, Ada, SDL, GUI or Blackbox_C"
+    exit 1
+fi
+
+# Check if the project works with kazoo. If so, use the makefile rule to edit the code
+if [[ -f Makefile && $(grep KAZOO Makefile) != "" ]]
+then
+    # Text source code can be edited directly from within space creator
+    cd work/cfs/apps/"${2,,}"_app/fsw
+    if [[ $1 == "C" ]]
+    then
+        $SPACECREATOR -client src/"${2,,}"_app_user.c
+    elif [[ $1 == "Ada" ]]
+    then
+        $SPACECREATOR -client src/"${2,,}".adb
+    elif [[ $1 == "CPP" ]]
+    then
+        $SPACECREATOR -client src/"${2,,}".cc
+    elif [[ $1 == "GUI" ]]
+    then
+        $SPACECREATOR -client src/UserWidgets.py
+    else
+        make edit
+    fi
+    exit 0
+else
+    echo -e "${ERROR} Code skeleton generation failed"
+fi
+

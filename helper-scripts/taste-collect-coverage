@@ -1,0 +1,16 @@
+#!/bin/bash -e
+
+if [ ! -f "$1" ]
+then
+    echo 'Usage: taste-collect-coverage binary'
+else
+    echo Executing binary for 10 seconds...
+    "$1" &
+    pid=$!
+    sleep 10
+    #kill -SIGUSR2 $pid
+    kill -SIGINT $pid
+    lcov --capture --directory .. --output-file coverage.info
+    genhtml coverage.info --output-directory coverage
+    xdg-open coverage/index.html    
+fi

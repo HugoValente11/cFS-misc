@@ -1,0 +1,41 @@
+#!/bin/bash -e
+
+# Run the tracer daemon - make sure only one instance exists at a time
+#   exec 9>/tmp/tracerf.lck
+#   if flock -n 9
+#   then
+#       $(taste-config --prefix)/share/AutoGUI/tracerd.py -s trace.msc &
+#       tracer_pid=$!
+#       sleep 0.5
+#   else
+#       echo '(Info) Another instance of the tracer daemon is running'
+#   fi
+
+if [ ! -f "$1" ]
+then
+    echo 'Usage: taste-run-and-trace binary
+
+This script executes one of your system binaries (on a native Linux platform) and records
+all inner message exchanges in the form of a sequence diagram (MSC).
+You can then open/edit this MSC with the TASTE MSC Editor
+'
+else
+    # Disable VCD, it does not seem to work anymore in POHIC
+    #export VCD_ENABLED=1
+    $(taste-config --prefix)/share/AutoGUI/tracer-inner2.py "$1"
+fi
+
+# In kazoo-based systems, the full dataview is in ../dataview
+cp ../dataview/dataview-uniq.asn .
+
+echo '================================================'
+echo 'Trace file was generated. You may now run:
+    taste-edit-msc trace.msc'
+
+# Patch the VCD file (if any)
+for f in $(find -nowarn -name *.vcd)
+do
+    taste-patch-vcd.py ../build/deploymentview_final/"$1"/deployment.h $f
+    echo "    gtkwave $f.new"
+done
+echo '================================================'

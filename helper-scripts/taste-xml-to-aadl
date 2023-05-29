@@ -1,0 +1,47 @@
+#!/bin/bash
+# $1 shall be the project folder containing the Space Creator project files
+# this script converts the XML and ASN1 models into AADL and generates the code skeletons
+
+
+# Logging with colors (only in a terminal)
+if [ -t 1 ] ; then
+    COLORON="\e[1m\e[32m"
+    REDCOLORON="\e[1m\e[31m"
+    COLOROFF="\e[0m"
+else
+    COLORON=""
+    REDCOLORON=""
+    COLOROFF=""
+fi
+INFO="${COLORON}[INFO]${COLOROFF}"
+ERROR="${REDCOLORON}[ERROR]${COLOROFF}"
+
+if [ ! -f interfaceview.xml ]
+then
+    echo -e "${ERROR} interfaceview.xml found"
+    exit 1
+fi
+
+# Figure out the project file name
+# It should be the only .pro file that has a .pro.user file next to it
+projectFile=$(ls *.pro)
+projectConfig=$projectFile.user
+if [ $projectConfig != $projectFile.user ]
+then
+    echo -e "${ERROR} No Space Creator project file found"
+    exit 1
+fi
+
+# To build the system, kazoo needs a concurrency view property files
+if [ ! -f ConcurrencyView_Propertiess.aadl ]
+then
+    touch ConcurrencyView_Properties.aadl
+fi
+
+make skeletons || exit 1
+
+
+if [[ $(grep taste.pro $projectFile) == "" ]]
+then
+   echo 'include(work/taste.pro)' >> $projectFile
+fi

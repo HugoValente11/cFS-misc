@@ -1,0 +1,126 @@
+#!/bin/bash -e
+
+# TASTE Dataview Creator / Editor
+
+# Asn1 module name based on the current folder name
+ASN1_MODULE=$(pwd | sed 's,^.*/[0-9]*,,g' | tr '[a-z]' '[A-Z]' | tr '_' '-')-DATAVIEW
+
+if [ -t 1 ] ; then
+    COLORON="\e[1m\e[32m"
+    REDCOLORON="\e[1m\e[31m"
+    COLOROFF="\e[0m"
+else
+    COLORON=""
+    REDCOLORON=""
+    COLOROFF=""
+fi
+
+INFO="${COLORON}[INFO]${COLOROFF}"
+ERROR="${REDCOLORON}[ERROR]${COLOROFF}"
+
+if [ "$1" != "" ]
+then
+    PROJECT_NAME=$1
+else
+    PROJECT_NAME=DataView
+fi
+
+# Find a suitable text editor, in order of priority: kate, gvim, vi
+if [ ! -z $(which kate) ]
+then
+    EDITOR="kate -n"
+elif [ ! -z $(which gvim) ]
+then
+    EDITOR="gvim -f"
+else
+    EDITOR=vi
+fi
+
+if [ -f "$PROJECT_NAME.asn" ]
+then
+    if [ -z $NONINTERACTIVE ]
+    then
+        echo -e "${INFO} Opening existing ${PROJECT_NAME}.asn"
+    fi
+else
+    if [ -z $NONINTERACTIVE ]
+    then
+        echo -e "${INFO} Creating a dummy ASN.1 file with a few type examples - feel free to add, edit, delete..."
+    fi
+    echo "${ASN1_MODULE} DEFINITIONS ::=
+BEGIN
+
+   MyInteger ::= INTEGER (0 .. 10000)
+
+-- ASN.1 Type definitions must start with an uppercase
+-- Field names in records (SEQUENCE) must start with a lowercase
+-- Underscores are not allowed: use dash (hyphen) 
+-- For integers do not assume that small ranges will be translated to small
+-- types in C or Ada (expect unsigned or signed 64 bits types with subtypes
+-- for the range in Ada)
+
+-- Simple types:
+
+-- TASTE-Boolean ::= BOOLEAN
+-- MyInteger   ::= INTEGER (0..255)
+-- MyReal      ::= REAL (0.0 .. 1000.0)
+-- MyBool      ::= BOOLEAN
+-- MyEnum      ::= ENUMERATED { hello, world, how-are-you }
+
+-- Complex types:
+
+--  MySeq       ::= SEQUENCE {
+--      input-data  MyInteger,
+--      output-data MyInteger,
+--      validity    ENUMERATED { valid, invalid }
+--  }
+--
+--  MyChoice    ::= CHOICE {
+--      a BOOLEAN,
+--      b MySeq
+--  }
+--
+--  MySeqOf     ::= SEQUENCE (SIZE (2)) OF MyEnum
+--
+--  MyOctStr    ::= OCTET STRING (SIZE (3))
+--
+--  -- You can also declare constants
+--  myVar       MySeqOf     ::= { hello, world }
+
+END
+" > $PROJECT_NAME.asn
+echo "${ASN1_MODULE} DEFINITIONS ::= BEGIN
+
+    --  In this ACN model, you can specify custom binary encoding rules for
+    --  your data types. For example if you require a specific memory layout
+    --  for a record, or need to add padding fields, define endianness, etc.
+    --  you can do that with ACN. Refer to the TASTE wiki for documentation:
+   --   https://taste.tuxfamily.org/wiki/index.php?title=Main_Page
+
+   --  Example of custom encoding:
+   --  My-Integer [encoding pos-int, endianness big, size 16]
+END
+" > $PROJECT_NAME.acn
+fi
+
+if [ -z $NONINTERACTIVE ]
+then
+    $EDITOR $PROJECT_NAME.asn
+    echo -e "${INFO} Converting the data view to AADL..."
+fi
+
+# cp $(taste-config --prefix)/share/taste-types/taste-types.asn .
+
+if [ -z $ONLY_ASN ]
+then
+    # Optionally convert to AADL
+    taste-update-data-view
+fi
+
+if [ -z $NONINTERACTIVE ]
+then
+    echo -e "${INFO} Data View created"
+    echo -e "${INFO} Run taste-edit-data-view to edit"
+    echo -e "${INFO}     taste-edit-acn-model to specify custom binary encodings with ACN"
+    echo -e "${INFO}     taste to create a new TASTE project"
+fi

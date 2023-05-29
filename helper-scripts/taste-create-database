@@ -1,0 +1,99 @@
+#!/bin/bash -e
+
+# Build an SQL database for the current TASTE project
+
+# Check if the project works with kazoo. If so, skip all the rest
+PRJ_FOLDER=${PWD}
+if [[ -f Makefile && $(grep KAZOO Makefile) != "" ]]
+then
+    WORK_FOLDER=work
+    # ensure dataview-uniq is there
+    taste-generate-skeletons
+else
+    WORK_FOLDER="${PRJ_FOLDER}"
+fi
+
+if [ -t 1 ] ; then
+    COLORON="\e[1m\e[32m"
+    REDCOLORON="\e[1m\e[31m"
+    COLOROFF="\e[0m"
+else
+    COLORON=""
+    REDCOLORON=""
+    COLOROFF=""
+fi
+
+INFO="${COLORON}[INFO]${COLOROFF}"
+ERROR="${REDCOLORON}[ERROR]${COLOROFF}"
+
+
+# (1) First check if a project name is given as first argument, othewise take current directory
+if [ "$1" ]
+then
+    DBNAME="$1"
+else
+    DBNAME=$(pwd | sed 's,^.*/,,g' | tr '[A-Z]' '[a-z]' | tr '-' '_')
+fi
+
+echo -e "${INFO} Creating a TASTE SQL Database for project ${DBNAME}"
+
+# (2) Create the DB output directory
+cd "${WORK_FOLDER}"
+mkdir -p sql_db
+
+# (3) Retrieve ASN.1 file and create a single ASN.1 file with all types inside
+
+INTERFACEVIEW="${PRJ_FOLDER}"/InterfaceView.aadl
+AADL_PROPERTIES="$(taste-config --prefix)/share/config_ellidiss/TASTE_IV_Properties.aadl"
+
+if [ ! -f "${INTERFACEVIEW}" ]
+then
+    echo -e "${ERROR} InterfaceView.aadl not found: ${INTERFACEVIEW}"
+    exit -1
+fi
+
+# Ensure skeletons have been generated, so that the dataview is up to date
+cp dataview/dataview-uniq.asn sql_db/$DBNAME.asn
+
+#mono $(which taste-extract-asn-from-design.exe) -i "$INTERFACEVIEW" -j sql_db/$DBNAME.asn
+
+# (4) create Python and SQL Alchemy interfaces
+
+cd sql_db
+asn2dataModel -toPython $DBNAME.asn
+asn2dataModel -toSqlalchemy $DBNAME.asn
+
+# Build the Python interface
+make -f Makefile.python 
+
+# (5) Create postgresql database
+echo -e "${INFO} If you are prompted for the taste password, enter 'tastedb'"
+echo "drop database if exists $DBNAME; create database $DBNAME;" | psql -h localhost -U taste postgres
+
+cat > initdb.py <<OEF
+from sqlalchemy import create_engine
+from ${DBNAME}_model import Base
+engine = create_engine(
+    'postgresql+psycopg2://taste:tastedb@localhost/${DBNAME}', echo=False)
+Base.metadata.create_all(engine)
+OEF
+python3 initdb.py
+
+cat > db.info << OEF2
+postgresql+psycopg2://taste:tastedb@localhost/${DBNAME}
+${DBNAME}
+OEF2
+
+# (6) Create a diagram of the database
+echo -e "${INFO} Creating a diagram with the database schema in work/doc/database/${DBNAME}.png"
+taste-db-diagram ${DBNAME}
+mkdir -p ../doc/database
+mv ${DBNAME}.png ../doc/database
+
+# (7) Add it to Space creator project file to make it appear in the workspace
+cd "${PRJ_FOLDER}"
+echo -e "${INFO} Updating the Space Creator project file"
+grep database ${DBNAME}.pro || echo "DISTFILES += work/doc/database/${DBNAME}.png" >> ${DBNAME}.pro
+
+
+echo -e "${INFO} All OK"

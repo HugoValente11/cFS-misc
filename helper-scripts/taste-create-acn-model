@@ -1,0 +1,63 @@
+#!/bin/bash -e
+
+# TASTE ACN File creator
+
+if [ -t 1 ] ; then
+    COLORON="\e[1m\e[32m"
+    REDCOLORON="\e[1m\e[31m"
+    COLOROFF="\e[0m"
+else
+    COLORON=""
+    REDCOLORON=""
+    COLOROFF=""
+fi
+
+DATAVIEW=DataView.asn
+
+if [ ! -z $(which kate) ]
+then
+    EDITOR="kate -n"
+elif [ ! -z $(which gvim) ]
+then
+    EDITOR="gvim -f"
+else
+    EDITOR=vi
+fi
+
+if [ ! -z "$1" ]
+then
+    if [ -f "$1" ]
+    then
+        DATAVIEW="$1"
+    else
+        echo -e -n "${ERROR} Invalid dataview filename - "
+        echo use $(basename "$0") \<filename.asn\>
+        exit -1
+    fi
+fi
+
+if [ -f "$DATAVIEW" ]
+then 
+    echo -e "${INFO} Creating dummy ACN file from existing DataView.asn"
+else
+    echo -e "${INFO} First create your ASN.1 data model: run taste-create-data-view"
+    exit -1
+fi
+
+TASTE_TYPES=$(taste-config --prefix)/share/taste-types/taste-types.asn
+asn1scc -ACND "$DATAVIEW" "$TASTE_TYPES"
+
+ACNFILENAME=${DATAVIEW%.*}.acn
+
+if [ -z $NONINTERACTIVE ]
+then
+    $EDITOR "$ACNFILENAME"
+fi
+
+taste-update-data-view $1
+
+if [ -z $NONINTERACTIVE ]
+then
+    echo -e "${INFO} All OK"
+    echo -e "${INFO} If you want to edit your ACN model, run taste-edit-acn-model"
+fi
