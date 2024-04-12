@@ -141,7 +141,7 @@ FEATURES
       Taste::EventInfo => "{{ attr.value }}";
       {% elif attr.name == "MessageID" %}
       Taste::MessageID => "{{ attr.value }}";
-      {% elif attr.name == "Deadline" %}
+      {% elif attr.name == "deadline" %}
       Taste::Deadline => "{{ attr.value }}";
       {% elif attr.name == "MessageContent" %}
       Taste::MessageContent => "{{ attr.value }}";
