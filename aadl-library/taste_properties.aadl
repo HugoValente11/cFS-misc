@@ -48,13 +48,7 @@ property set Taste is
 
 FS_Default_Value : aadlstring applies to (data);
 
-	Deadline : inherit Time => Period
-	applies to (thread,
-              thread group,
-              process,
-              system,
-              device,
-				  subprogram access);
+	Deadline : aadlstring applies to (subprogram);
 
 ----------------------------
 -- Types and enumerations --
