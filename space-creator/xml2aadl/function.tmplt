@@ -120,6 +120,7 @@ FEATURES
       Taste::RCMperiod               => {% if attr.value %}{{ attr.value }} {% else %} 0 {% endif %}ms;
       {% elif attr.name == "wcet" %}
       Compute_Execution_Time => {% if attr.value %}{{ attr.value }} ms .. {{ attr.value }} {% else %} 0 ms .. 0 {% endif %}ms;
+      Taste::WCET => "{{attr.value}}";
       {% elif attr.name == "queue_size" %}
       Taste::Associated_Queue_Size   => {% if attr.value %}{{ attr.value }}{% else %}1{% endif %};
       {% elif attr.name == "name" %}
