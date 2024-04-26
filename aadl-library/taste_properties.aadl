@@ -298,4 +298,8 @@ Target_PI: aadlstring applies to (subprogram);
 -- Fault detection isolation and recovery
 FDIR : aadlstring applies to (system);
 
+-- Deployment view properties
+-- Processor ID
+Processor_Id : aadlstring applies to (system, process);
+
 end Taste;
