@@ -195,6 +195,9 @@ public
    {% endfor %}
     {{ partition.name }} : process deploymentview::DV::{{ node.nodeLabel }}::{{ partition.name }}.others { {# XXX Missing Port_Number, but what is that? #}
        TASTE_DV_Properties::CoverageEnabled => false;
+   {% for property in partition.properties %}
+       {{ property.name }} => "{{ property.value }}";
+   {% endfor %}
     };
   {% endfor %}
    {% for attr in node.attributes %}
