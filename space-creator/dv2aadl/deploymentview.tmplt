@@ -127,6 +127,8 @@ public
     Deployment::Config => "{{ attr.value }}";
    {% elif attr.name == "address" %}
     Taste::Address => "{{ attr.value }}";
+   {% elif attr.name == "network_number" %}
+    Taste::NetworkNumber => "{{ attr.value }}";
    {% endif %}
   {% endfor %}
  end {{ device.name }};

@@ -303,6 +303,8 @@ FDIR : aadlstring applies to (system);
 Processor_Id : aadlstring applies to (system, process);
 -- IP + port for IP connnections
 Address: aadlstring applies to (Device, Bus);
+-- Network number to connect multiple nodes
+NetworkNumber: aadlstring applies to (Device, Bus);
 
 
 end Taste;
