@@ -125,6 +125,8 @@ public
     Deployment::Configuration => "{{ attr.value }}"; {# may include XML escaping #}
    {% elif attr.name == "asn1file" %}
     Deployment::Config => "{{ attr.value }}";
+   {% elif attr.name == "address" %}
+    Taste::Address => "{{ attr.value }}";
    {% endif %}
   {% endfor %}
  end {{ device.name }};

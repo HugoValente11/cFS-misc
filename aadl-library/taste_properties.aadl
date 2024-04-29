@@ -301,5 +301,8 @@ FDIR : aadlstring applies to (system);
 -- Deployment view properties
 -- Processor ID
 Processor_Id : aadlstring applies to (system, process);
+-- IP + port for IP connnections
+Address: aadlstring applies to (Device, Bus);
+
 
 end Taste;
