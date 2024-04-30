@@ -15,6 +15,16 @@ def install_gr740_rtems51_posix():
     """ $ $HOME/tool-src/install/85_rtems.sh """
     os.system("xterm -e $HOME/tool-src/install/85_rtems.sh")
 
+def install_cfs():
+    try:
+        repo_url = "git@github.com:HugoValente11/TASTE-cFS-Runtime.git"
+        destination_folder = "/home/taste/tool-src/TASTE-cFS-Runtime"
+        clone_command = f"git clone {repo_url} {destination_folder}"
+        os.system(clone_command)
+        print(f"Repository cloned successfully to {destination_folder}.")
+    except Exception as e:
+        print(f"Error: {e}")
+
 def install_gr740_rcc13rc9_posix():
     """ $ $HOME/tool-src/add-ons/install-gaisler-rcc-1.3-rc9.sh """
     os.system("xterm -e $HOME/tool-src/add-ons/install-gaisler-rcc-1.3-rc9.sh")
@@ -59,6 +69,10 @@ def check_gnat2020_arm():
     if not os.path.isdir("/opt/GNAT/gnat-arm-2020/bin/"):
         raise NotImplementedError(install_gnat2020_arm)
 
+def check_cfs():
+    if not os.path.isfile("/home/taste/tool-src/TASTE-cFS-Runtime"):
+        raise NotImplementedError(install_cfs)
+
 # When editing, replace dot (.) with underscore (_)
 # the TASTE GUI mixes them up if there is more than one underscore
 PLATFORMS = { "crazyflie_v2_gnat"            : lambda: True,
@@ -85,6 +99,7 @@ PLATFORMS = { "crazyflie_v2_gnat"            : lambda: True,
               "x86_linux"                    : lambda: True,
               "x86_win32"                    : lambda: True,
               "msp430fr5969_freertos"        : check_msp430_freertos,
+              "cfs"        : lambda: True,
               "x86_generic_linux"            : lambda: True
              }
 

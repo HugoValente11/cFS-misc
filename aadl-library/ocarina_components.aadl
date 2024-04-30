@@ -2443,6 +2443,7 @@ end n2x;
 processor gr740 extends leon
 end gr740;
 
+
 -- RTEMS mainline targets
 
 processor implementation leon2.rtems51_posix
@@ -2631,6 +2632,17 @@ properties
    Scheduling_Protocol => (Posix_1003_Highest_Priority_First_Protocol);
    Deployment::Execution_Platform => GENERIC_LINUX;
 end x86.generic_linux;
+
+processor cfs extends x86
+properties
+   Deployment::Execution_Platform => CFS;
+end cfs;
+
+processor implementation cfs.posix
+properties
+   Scheduling_Protocol => (Posix_1003_Highest_Priority_First_Protocol);
+   Priority_Range => 0 .. 255;
+end cfs.posix;
 
 --   processor implementation x86.linux_bench
 --   properties
