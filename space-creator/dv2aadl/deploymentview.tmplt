@@ -127,6 +127,8 @@ public
     Deployment::Config => "{{ attr.value }}";
    {% elif attr.name == "address" %}
     Taste::Address => "{{ attr.value }}";
+   {% elif attr.name == "protocol" %}
+    Taste::Protocol => "{{ attr.value }}";
    {% endif %}
   {% endfor %}
   {% for connection in Connections %}

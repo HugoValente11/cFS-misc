@@ -305,6 +305,7 @@ Processor_Id : aadlstring applies to (system, process);
 Address: aadlstring applies to (Device, Bus);
 -- Network number to connect multiple nodes
 NetworkNumber: aadlstring applies to (Device, Bus);
+Protocol: aadlstring applies to (Device, Bus);
 
 
 end Taste;
