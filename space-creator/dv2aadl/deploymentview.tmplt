@@ -131,6 +131,17 @@ public
     Taste::NetworkNumber => "{{ attr.value }}";
    {% endif %}
   {% endfor %}
+------
+  {% for connection in Connections %}
+   {% if connection.fromPort == device.name %} 
+      {% for attr in connection.attributes %}
+        {% if attr.name == "network_number" %}
+          Taste::NetworkNumber => "{{ attr.value }}";
+        {% endif %}
+      {% endfor %}
+   {% endif %}
+  {% endfor %}
+--------
  end {{ device.name }};
 
  device implementation {{ device.name }}.others
