@@ -128,7 +128,9 @@ cfs: cfs_skeletons
 	mkdir -p work/cfs
 	cp -af ~/tool-src/TASTE-cFS-Runtime/* work/cfs/
 	\$(KAZOO) --gw --glue
-	cd work/cfs && make prep && make && make install
+    mkdir -p work/cfs/apps/sbn/fsw/tables/
+	cp work/cfs/sample_defs/sbn_conf_tbl.c work/cfs/apps/sbn/fsw/tables/
+	cd work/cfs
 
 cfs_skeletons: work/skeletons_built DeploymentView.aadl InterfaceView.aadl
 	\$(KAZOO) --gw --glue
