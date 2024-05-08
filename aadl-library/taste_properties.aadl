@@ -307,5 +307,12 @@ Address: aadlstring applies to (Device, Bus);
 NetworkNumber: aadlstring applies to (Device, Bus);
 Protocol: aadlstring applies to (Device, Bus);
 
+-- Network properties for schedulability
+Transmission: aadlstring applies to (Device, Bus);
+Throughput: aadlstring applies to (Device, Bus);
+Max_Blocking: aadlstring applies to (Device, Bus);
+Max_Packet_Size: aadlstring applies to (Device, Bus);
+Min_Packet_Size: aadlstring applies to (Device, Bus);
+Speed_Factor: aadlstring applies to (Device, Bus);
 
 end Taste;

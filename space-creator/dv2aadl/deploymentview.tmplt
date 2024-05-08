@@ -132,6 +132,22 @@ public
    {% endif %}
   {% endfor %}
   {% for connection in Connections %}
+   {% if connection.fromNode == node.name and connection.fromDevice == device.name and connection.fromPort == device.portName %} 
+    Taste::Transmission => "HALF_DUPLEX";
+    {% for attr in connection.attributes %}
+        {% if attr.name == "throughput" %}
+    Taste::Throughput => "{{ attr.value }}";
+        {% elif attr.name == "max_blocking" %}
+    Taste::Max_Blocking => "{{ attr.value }}";
+        {% elif attr.name == "max_packet_size" %}
+    Taste::Max_Packet_Size => "{{ attr.value }}";
+        {% elif attr.name == "min_packet_size" %}
+    Taste::Min_Packet_Size => "{{ attr.value }}";
+        {% elif attr.name == "speed_factor" %}
+    Taste::Speed_Factor => "{{ attr.value }}";
+        {% endif %}
+      {% endfor %}
+{% endif %}
    {% if connection.fromPort == device.name %} 
       {% for attr in connection.attributes %}
         {% if attr.name == "network_number" %}
