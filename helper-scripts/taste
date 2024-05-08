@@ -128,7 +128,7 @@ cfs: cfs_skeletons
 	mkdir -p work/cfs
 	cp -af ~/tool-src/TASTE-cFS-Runtime/* work/cfs/
 	\$(KAZOO) --gw --glue
-    mkdir -p work/cfs/apps/sbn/fsw/tables/ # fix separator error
+	mkdir -p work/cfs/apps/sbn/fsw/tables/
 	cp work/cfs/sample_defs/sbn_conf_tbl.c work/cfs/apps/sbn/fsw/tables/
 	cd work/cfs
 
