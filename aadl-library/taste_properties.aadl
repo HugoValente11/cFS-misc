@@ -299,10 +299,10 @@ Target_PI: aadlstring applies to (subprogram);
 FDIR : aadlstring applies to (system);
 
 -- Interface properties for schedulability
-Send_WCET : aadlstring applies to (system);
-Receive_WCET : aadlstring applies to (system);
-Queue_WCET : aadlstring applies to (system);
-Jitter : aadlstring applies to (system);
+Send_WCET : aadlstring applies to (subprogram);
+Receive_WCET : aadlstring applies to (subprogram);
+Queue_WCET : aadlstring applies to (subprogram);
+Jitter : aadlstring applies to (subprogram);
 
 -- Deployment view properties
 -- Processor ID
