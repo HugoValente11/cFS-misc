@@ -298,6 +298,12 @@ Target_PI: aadlstring applies to (subprogram);
 -- Fault detection isolation and recovery
 FDIR : aadlstring applies to (system);
 
+-- Interface properties for schedulability
+Send_WCET : aadlstring applies to (system);
+Receive_WCET : aadlstring applies to (system);
+Queue_WCET : aadlstring applies to (system);
+Jitter : aadlstring applies to (system);
+
 -- Deployment view properties
 -- Processor ID
 Processor_Id : aadlstring applies to (system, process);
