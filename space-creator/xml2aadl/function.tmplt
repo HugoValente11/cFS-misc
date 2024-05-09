@@ -149,6 +149,14 @@ FEATURES
       Taste::StoreMessage => "{{ attr.value }}";
       {% elif attr.name == "MessageSize" %}
       Taste::MessageSize => "{{ attr.value }}";
+      {% elif attr.name == "send_wcet" %}
+      Taste::Send_WCET => "{{ attr.value }}";
+      {% elif attr.name == "receive_wcet" %}
+      Taste::Receive_WCET => "{{ attr.value }}";
+      {% elif attr.name == "queue_wcet" %}
+      Taste::Queue_WCET => "{{ attr.value }}";
+      {% elif attr.name == "jitter" %}
+      Taste::Jitter => "{{ attr.value }}";
       {% else %}
       -- Unrecognized property: {{ attr.name }} => {{ attr.value }}
       {% endif %}      
