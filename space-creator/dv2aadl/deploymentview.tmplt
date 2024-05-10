@@ -131,9 +131,9 @@ public
     Taste::Protocol => "{{ attr.value }}";
    {% endif %}
   {% endfor %}
+    Taste::Transmission => "HALF_DUPLEX";
   {% for connection in Connections %}
    {% if connection.fromNode == node.name and connection.fromDevice == device.name and connection.fromPort == device.portName %} 
-    Taste::Transmission => "HALF_DUPLEX";
     {% for attr in connection.attributes %}
         {% if attr.name == "throughput" %}
     Taste::Throughput => "{{ attr.value }}";
