@@ -65,7 +65,7 @@ coverage: work/glue_coverage
 	\$(MAKE) -C work
 
 run:
-	$(MAKE) cfs
+	\$(MAKE) cfs
 	cd work/cfs && $(MAKE) run
 
 # Simulation target (experimental)
