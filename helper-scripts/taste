@@ -66,7 +66,7 @@ coverage: work/glue_coverage
 
 run:
 	\$(MAKE) cfs
-	cd work/cfs && $(MAKE) run
+	cd work/cfs && \$(MAKE) run
 
 # Simulation target (experimental)
 simu:	InterfaceView.aadl DeploymentView.aadl DataView.aadl
