@@ -65,7 +65,8 @@ coverage: work/glue_coverage
 	\$(MAKE) -C work
 
 run:
-	cd work/cfs/build/exe/cpu1 && sudo ./core-cpu1
+	$(MAKE) cfs
+	cd work/cfs && $(MAKE) run
 
 # Simulation target (experimental)
 simu:	InterfaceView.aadl DeploymentView.aadl DataView.aadl
