@@ -34,7 +34,7 @@ then
     cd work/cfs/apps/"${2,,}"_app/fsw
     if [[ $1 == "C" ]]
     then
-        $SPACECREATOR -client src/"${2,,}"_app_user.c
+        $SPACECREATOR -client src/"${2,,}"_app.c
     elif [[ $1 == "Ada" ]]
     then
         $SPACECREATOR -client src/"${2,,}".adb
